@@ -1,6 +1,7 @@
 package urlshort
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
@@ -52,4 +53,28 @@ func JSONHandler(jsondata []byte, mux *http.ServeMux) (*http.ServeMux, error) {
 	mux = MapUrls(data, mux)
 
 	return mux, err
+}
+
+func SQLiteHandler(db *sql.DB, mux *http.ServeMux) (*http.ServeMux, error) {
+	var data []Redir
+
+	rows, err := db.Query("SELECT * FROM urls")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var path string
+		var url string
+		var id int
+		
+		rows.Scan(&id, &path, &url)
+		data = append(data, Redir{path, url})
+	}
+
+	mux = MapUrls(data, mux)
+
+	return mux, err
+
 }

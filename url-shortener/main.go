@@ -4,6 +4,10 @@ package main
 
 import (
 	urlshort "Tutorial/url-shortener/handler"
+
+	_ "github.com/mattn/go-sqlite3"
+
+	"database/sql"
 	"flag"
 	"fmt"
 	"net/http"
@@ -12,8 +16,10 @@ import (
 )
 
 var filePtr = flag.String("file", "urls.yaml", "a file with map of paths : urls' (default 'urls.yaml')")
+var dbPtr = flag.Bool("db", false, "use sqlite db (default: false)")
 
 func main() {
+	const dbName string = "urls.db"
 
 	flag.Parse()
 
@@ -32,8 +38,13 @@ func main() {
 	// fallback
 
 	file, err := os.ReadFile(*filePtr)
+
 	if err != nil {
 		panic(err)
+	}
+
+	if *dbPtr {
+		*filePtr = ".db"
 	}
 
 	switch strings.Split(*filePtr, ".")[1] {
@@ -42,6 +53,20 @@ func main() {
 
 	case "json":
 		handler, err = urlshort.JSONHandler([]byte(file), mapHandler)
+
+	case "db":
+		db, err := sql.Open("sqlite3", dbName)
+
+		if err != nil {
+			panic(err)
+		}
+
+		handler, err = urlshort.SQLiteHandler(db, mapHandler)
+
+		if err != nil {
+			panic(err)
+		}
+
 	default:
 		panic("")
 	}
