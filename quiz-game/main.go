@@ -1,3 +1,5 @@
+// https://courses.calhoun.io/lessons/les_goph_01
+
 package main
 
 import (
@@ -5,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -12,6 +15,7 @@ import (
 
 var cvsPtr = flag.String("csv", "problems.csv", "a csv file in the format of 'question, answer' (default 'problems.csv')")
 var limPtr = flag.Int("limit", 30, "the time limit for the quiz in seconds (default 30)")
+var shufPtr = flag.Bool("shuffle", false, "shuffle questios randomly")
 var scoreQ = 0
 var totalQ = 0
 
@@ -27,6 +31,12 @@ func readCSV(file_name string) (data [][]string) {
 	data, err = csvReader.ReadAll()
 
 	totalQ = len(data)
+
+	if *shufPtr {
+		rand.Shuffle(len(data), func(i, j int) {
+			data[i], data[j] = data[j], data[i]
+		})
+	}
 
 	if err != nil {
 		log.Fatal(err)
@@ -71,6 +81,7 @@ func summary_quiz() {
 
 func main() {
 
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	flag.Parse()
 
 	quizes := readCSV(*cvsPtr)
