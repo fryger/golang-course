@@ -1,14 +1,15 @@
 package urlshort
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"gopkg.in/yaml.v3"
 )
 
 type Redir struct {
-	Path string `yaml:"path"`
-	Url  string `yaml:"url"`
+	Path string `yaml:"path" json:"path"`
+	Url  string `yaml:"url" json:"url"`
 }
 
 func MapHandler(urlsmap map[string]string, mux *http.ServeMux) *http.ServeMux {
@@ -19,12 +20,7 @@ func MapHandler(urlsmap map[string]string, mux *http.ServeMux) *http.ServeMux {
 	return mux
 }
 
-func YAMLHandler(yamldata []byte, mux *http.ServeMux) (*http.ServeMux, error) {
-
-	var data []Redir
-
-	err := yaml.Unmarshal(yamldata, &data)
-
+func MapUrls(data []Redir, mux *http.ServeMux) *http.ServeMux {
 	urlData := make(map[string]string)
 
 	for _, entry := range data {
@@ -32,6 +28,28 @@ func YAMLHandler(yamldata []byte, mux *http.ServeMux) (*http.ServeMux, error) {
 	}
 
 	mux = MapHandler(urlData, mux)
+
+	return mux
+}
+
+func YAMLHandler(yamldata []byte, mux *http.ServeMux) (*http.ServeMux, error) {
+
+	var data []Redir
+
+	err := yaml.Unmarshal(yamldata, &data)
+
+	mux = MapUrls(data, mux)
+
+	return mux, err
+}
+
+func JSONHandler(jsondata []byte, mux *http.ServeMux) (*http.ServeMux, error) {
+
+	var data []Redir
+
+	err := json.Unmarshal(jsondata, &data)
+
+	mux = MapUrls(data, mux)
 
 	return mux, err
 }
