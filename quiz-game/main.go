@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
+	"strings"
 	"time"
 )
 
@@ -37,16 +37,16 @@ func readCSV(file_name string) (data [][]string) {
 
 func read_quizes(quizes [][]string) {
 
-	var inp int
+	var inp string
 
 	for i, d := range quizes {
 
 		fmt.Printf("Problem #%d: %s \n", i+1, d[0])
 		fmt.Scan(&inp)
 
-		ans, _ := strconv.Atoi(d[1])
+		inp = strings.ToLower(strings.TrimSpace(inp))
 
-		if ans == inp {
+		if inp == d[1] {
 			scoreQ++
 		}
 	}
