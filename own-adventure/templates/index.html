@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CYOA</title>
+  </head>
+  <body>
+    <div>
+      <h1>{{.Title}}</h1>
+      {{range .Story}}
+      <p>{{.}}</p>
+      {{end}}
+    </div>
+  </hr>
+  {{range .Options}}
+  <p><a href="/{{.Chapter}}">{{.Text}}</a></p>
+  {{end}}
+  </body>
+</html>
