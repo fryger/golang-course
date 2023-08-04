@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -55,25 +56,71 @@ func parseStory(story Chapter, w http.ResponseWriter, r *http.Request) {
 	catch(err)
 }
 
-func main() {
-	stories := readStory(filename)
-	router := chi.NewRouter()
+func printStory(chap Chapter) string {
 
-	for path, story := range stories {
-		// Create a new variable to hold the current story for this route
-		currentStory := story
+	var choice int
 
-		router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, "/intro", http.StatusFound)
-		})
+	fmt.Println("Title:", chap.Title)
+	fmt.Println("-----------------------------------------------------------------------------")
+	for _, s := range chap.Story {
+		fmt.Print(s)
+	}
+	fmt.Println("")
+	fmt.Println("-----------------------------------------------------------------------------")
+	fmt.Println("")
 
-		router.Route(fmt.Sprintf("/%s", path), func(r chi.Router) {
-			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-				parseStory(currentStory, w, r)
-			})
-		})
+	if chap.Title == "Home Sweet Home" {
+		os.Exit(0)
 	}
 
-	err := http.ListenAndServe(":8004", router)
-	catch(err)
+	fmt.Println("What now?!")
+	fmt.Println("")
+	for i, o := range chap.Options {
+		option := fmt.Sprintf("#%d: %s", i+1, o.Text)
+		fmt.Println(option)
+	}
+
+	fmt.Scan(&choice)
+
+	return chap.Options[choice-1].Chapter
+}
+
+func main() {
+
+	var cmdPtr = flag.Bool("cmd", false, "run CYOA in terminal' (default 'false')")
+	stories := readStory(filename)
+
+	flag.Parse()
+
+	if *cmdPtr {
+
+		var choice = "intro"
+
+		for {
+
+			choice = printStory(stories[choice])
+		}
+
+	} else {
+		router := chi.NewRouter()
+
+		for path, story := range stories {
+			// Create a new variable to hold the current story for this route
+			currentStory := story
+
+			router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+				http.Redirect(w, r, "/intro", http.StatusFound)
+			})
+
+			router.Route(fmt.Sprintf("/%s", path), func(r chi.Router) {
+				r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+					parseStory(currentStory, w, r)
+				})
+			})
+		}
+
+		err := http.ListenAndServe(":8004", router)
+		catch(err)
+	}
+
 }
